@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,11 @@ import { Provider } from 'react-redux';
 import { store } from './src/store';
 import { ThemeProvider, useTheme } from './src/hooks/useTheme';
 import { ThemeToggle } from './src/components/ThemeToggle';
+import { loadState } from './src/utils/storage';
+import { loadCharacter } from './src/store/characterSlice';
+import { loadTodos } from './src/store/todoSlice';
+import { loadSkillTree } from './src/store/skillTreeSlice';
+import { loadAchievements } from './src/store/achievementSlice';
 
 import CharacterScreen from './src/screens/CharacterScreen';
 import TodoScreen from './src/screens/TodoScreen';
@@ -26,28 +31,14 @@ function TabIcon({
   color: string;
   size: number;
 }) {
-  let iconName: keyof typeof Ionicons.glyphMap = 'person';
-  switch (routeName) {
-    case 'Character':
-      iconName = 'person';
-      break;
-    case 'Todo':
-      iconName = 'clipboard';
-      break;
-    case 'SkillTree':
-      iconName = 'leaf';
-      break;
-    case 'Achievement':
-      iconName = 'trophy';
-      break;
-  }
-  return (
-    <Ionicons
-      name={focused ? iconName : (`${iconName}-outline` as keyof typeof Ionicons.glyphMap)}
-      size={size}
-      color={color}
-    />
-  );
+  const icons = {
+    Character: { focused: 'person' as const, unfocused: 'person-outline' as const },
+    Todo: { focused: 'clipboard' as const, unfocused: 'clipboard-outline' as const },
+    SkillTree: { focused: 'leaf' as const, unfocused: 'leaf-outline' as const },
+    Achievement: { focused: 'trophy' as const, unfocused: 'trophy-outline' as const },
+  };
+  const icon = icons[routeName as keyof typeof icons];
+  return <Ionicons name={focused ? icon.focused : icon.unfocused} size={size} color={color} />;
 }
 
 function AppNavigator() {
@@ -112,6 +103,18 @@ function AppNavigator() {
 }
 
 export default function App() {
+  // Hydrate persisted state on mount
+  useEffect(() => {
+    loadState().then(state => {
+      if (state) {
+        store.dispatch(loadCharacter(state.character));
+        store.dispatch(loadTodos(state.todo));
+        store.dispatch(loadSkillTree(state.skillTree));
+        store.dispatch(loadAchievements(state.achievement));
+      }
+    });
+  }, []);
+
   return (
     <Provider store={store}>
       <ThemeProvider>
