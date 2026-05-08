@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(claude *)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -o StrictHostKeyChecking=accept-new\" git clone *)",
+      "Bash(git clone *)",
+      "Bash(npm config *)",
+      "Bash(curl -Is --connect-timeout 15 https://github.com)",
+      "Bash(git ls-remote *)",
+      "Bash(nslookup *)",
+      "Bash(git config *)",
+      "Bash(bash *)",
+      "Bash(git *)",
+      "Bash(gh auth *)",
+      "Bash(cd /tmp)",
+      "Bash(npx create-expo-app@latest InfiniteEvolution --template blank-typescript)",
+      "Bash(cp /tmp/InfiniteEvolution/package.json /tmp/InfiniteEvolution/tsconfig.json /tmp/InfiniteEvolution/app.json /tmp/InfiniteEvolution/babel.config.js /tmp/InfiniteEvolution/App.tsx /tmp/InfiniteEvolution/index.ts /tmp/InfiniteEvolution/.gitignore \"C:/Users/Administrator/dev/AI_test/InfiniteEvolution/\")",
+      "Bash(rm -rf /tmp/InfiniteEvolution)",
+      "Bash(cp /tmp/InfiniteEvolution/package.json /tmp/InfiniteEvolution/tsconfig.json /tmp/InfiniteEvolution/app.json /tmp/InfiniteEvolution/App.tsx /tmp/InfiniteEvolution/index.ts /tmp/InfiniteEvolution/.gitignore /tmp/InfiniteEvolution/package-lock.json \"C:/Users/Administrator/dev/AI_test/InfiniteEvolution/\")",
+      "Bash(cp -r /tmp/InfiniteEvolution/assets \"C:/Users/Administrator/dev/AI_test/InfiniteEvolution/\")",
+      "Bash(cp -r /tmp/InfiniteEvolution/node_modules \"C:/Users/Administrator/dev/AI_test/InfiniteEvolution/\")"
+    ]
+  }
+}
