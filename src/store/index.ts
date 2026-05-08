@@ -2,14 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import characterReducer from './characterSlice';
 import todoReducer from './todoSlice';
 import skillTreeReducer from './skillTreeSlice';
-// import achievementReducer from './achievementSlice';
+import achievementReducer from './achievementSlice';
 
 export const store = configureStore({
   reducer: {
     character: characterReducer,
     todo: todoReducer,
     skillTree: skillTreeReducer,
-    // achievement: achievementReducer,
+    achievement: achievementReducer,
   },
 });
 
