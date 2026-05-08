@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import { store } from './src/store';
 import { ThemeProvider, useTheme } from './src/hooks/useTheme';
 import { ThemeToggle } from './src/components/ThemeToggle';
+import { useDailyLogin } from './src/hooks/useDailyLogin';
 import { loadState } from './src/utils/storage';
 import { loadCharacter } from './src/store/characterSlice';
 import { loadTodos } from './src/store/todoSlice';
@@ -43,6 +44,7 @@ function TabIcon({
 
 function AppNavigator() {
   const { theme } = useTheme();
+  useDailyLogin();
 
   return (
     <NavigationContainer>
