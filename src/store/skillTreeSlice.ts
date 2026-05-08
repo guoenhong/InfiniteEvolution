@@ -36,10 +36,9 @@ export const skillTreeSlice = createSlice({
       const branch = state.branches.find(b => b.id === action.payload.branchId);
       if (!branch) return;
       branch.exp += action.payload.amount;
-      // Auto level-up branch
-      const expToNext = (branch.level + 1) * 200;
-      while (branch.exp >= expToNext) {
-        branch.exp -= expToNext;
+      // Auto level-up branch (recalculate threshold each iteration)
+      while (branch.exp >= (branch.level + 1) * 200) {
+        branch.exp -= (branch.level + 1) * 200;
         branch.level += 1;
       }
       // Also distribute exp to all unlocked nodes in this branch

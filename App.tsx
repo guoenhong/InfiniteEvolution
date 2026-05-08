@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -105,7 +105,10 @@ function AppNavigator() {
 }
 
 export default function App() {
-  // Hydrate persisted state on mount
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate persisted state on mount BEFORE rendering AppNavigator
+  // This ensures useDailyLogin runs AFTER persisted state is loaded
   useEffect(() => {
     loadState().then(state => {
       if (state) {
@@ -114,13 +117,14 @@ export default function App() {
         store.dispatch(loadSkillTree(state.skillTree));
         store.dispatch(loadAchievements(state.achievement));
       }
+      setHydrated(true);
     });
   }, []);
 
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <AppNavigator />
+        {hydrated ? <AppNavigator /> : null}
         <StatusBar style="auto" />
       </ThemeProvider>
     </Provider>
