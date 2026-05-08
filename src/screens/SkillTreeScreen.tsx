@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../hooks/useTheme';
 import { SkillBranchSelector } from '../components/SkillBranchSelector';

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -124,8 +125,10 @@ export default function App() {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        {hydrated ? <AppNavigator /> : null}
-        <StatusBar style="auto" />
+        <SafeAreaProvider>
+          {hydrated ? <AppNavigator /> : null}
+          <StatusBar style="auto" />
+        </SafeAreaProvider>
       </ThemeProvider>
     </Provider>
   );
