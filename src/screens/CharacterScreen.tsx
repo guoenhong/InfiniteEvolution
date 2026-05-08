@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { SafeAreaView, ScrollView } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
+import { CharacterPanel } from '../components/CharacterPanel';
 
 export default function CharacterScreen() {
   const { theme } = useTheme();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bgPrimary }}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 40 }}>⚔️</Text>
-        <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginTop: 8 }}>角色</Text>
-      </View>
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <CharacterPanel />
+      </ScrollView>
     </SafeAreaView>
   );
 }
