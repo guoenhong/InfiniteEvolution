@@ -1,7 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useColorScheme } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import { ThemeMode, ThemeTokens, darkTheme, lightTheme } from '../constants/theme';
+
+const THEME_FILE = FileSystem.documentDirectory + 'infinite-evolution/theme-mode.json';
+
+async function saveThemeMode(mode: ThemeMode) {
+  try {
+    await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'infinite-evolution/', { intermediates: true });
+    await FileSystem.writeAsStringAsync(THEME_FILE, JSON.stringify({ mode }));
+  } catch {}
+}
+
+async function loadThemeMode(): Promise<ThemeMode | null> {
+  try {
+    const exists = await FileSystem.getInfoAsync(THEME_FILE);
+    if (exists.exists) {
+      const data = JSON.parse(await FileSystem.readAsStringAsync(THEME_FILE));
+      if (data.mode === 'dark' || data.mode === 'light' || data.mode === 'system') return data.mode;
+    }
+  } catch {}
+  return null;
+}
 
 interface ThemeContextValue {
   theme: ThemeTokens;
@@ -28,7 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Persist theme preference
   const setThemeMode = useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
-    AsyncStorage.setItem('theme-mode', mode).catch(() => {});
+    saveThemeMode(mode);
   }, []);
 
   // Cycle: dark -> light -> system -> dark
@@ -45,13 +65,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate saved preference on mount
   useEffect(() => {
-    AsyncStorage.getItem('theme-mode')
-      .then((saved) => {
-        if (saved === 'dark' || saved === 'light' || saved === 'system') {
-          setThemeModeState(saved);
-        }
-      })
-      .catch(() => {});
+    loadThemeMode().then(saved => {
+      if (saved) setThemeModeState(saved);
+    });
   }, []);
 
   return React.createElement(

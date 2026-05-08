@@ -1,12 +1,13 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import type { RootState } from '../types';
 
-const STORAGE_KEY = 'infinite-evolution-state';
+const STORAGE_DIR = FileSystem.documentDirectory + 'infinite-evolution/';
+const STATE_FILE = STORAGE_DIR + 'state.json';
 
 export async function saveState(state: RootState): Promise<void> {
   try {
-    const json = JSON.stringify(state);
-    await AsyncStorage.setItem(STORAGE_KEY, json);
+    await FileSystem.makeDirectoryAsync(STORAGE_DIR, { intermediates: true });
+    await FileSystem.writeAsStringAsync(STATE_FILE, JSON.stringify(state));
   } catch (e) {
     console.error('Failed to save state:', e);
   }
@@ -14,8 +15,9 @@ export async function saveState(state: RootState): Promise<void> {
 
 export async function loadState(): Promise<RootState | undefined> {
   try {
-    const json = await AsyncStorage.getItem(STORAGE_KEY);
-    if (json) {
+    const exists = await FileSystem.getInfoAsync(STATE_FILE);
+    if (exists.exists) {
+      const json = await FileSystem.readAsStringAsync(STATE_FILE);
       return JSON.parse(json) as RootState;
     }
   } catch (e) {
