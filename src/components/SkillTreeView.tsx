@@ -25,14 +25,14 @@ export function SkillTreeView({ branchId }: Props) {
   const tiers = [...new Set(sortedNodes.map(n => n.tier))].sort();
 
   const handleUnlock = (node: SkillNode) => {
-    if (node.level > 0) return;
+    if (node.subSkills.some(s => s.level > 0)) return;
     if (sp < node.spCost) {
       Alert.alert('SP 不足', `需要 ${node.spCost} SP，当前 ${sp}`);
       return;
     }
     // Check prereqs
     const unmetPrereqs = node.prerequisites.filter(prereqId =>
-      !branch.nodes.find(n => n.id === prereqId)?.level
+      !branch.nodes.find(n => n.id === prereqId)?.subSkills.some(s => s.level > 0)
     );
     if (unmetPrereqs.length > 0) {
       Alert.alert('前置条件未满足', `需要先解锁：${unmetPrereqs.join(', ')}`);
@@ -82,10 +82,10 @@ export function SkillTreeView({ branchId }: Props) {
           <Text style={[styles.tierLabel, { color: theme.textMuted }]}>第 {tier} 层</Text>
           <View style={styles.nodesRow}>
             {sortedNodes.filter(n => n.tier === tier).map(node => {
-              const isUnlocked = node.level > 0;
+              const isUnlocked = node.subSkills.some(s => s.level > 0);
               const canUnlock = !isUnlocked && sp >= node.spCost &&
                 node.prerequisites.every(prereqId =>
-                  branch.nodes.find(n => n.id === prereqId)?.level
+                  branch.nodes.find(n => n.id === prereqId)?.subSkills.some(s => s.level > 0)
                 );
               const isLocked = !isUnlocked && !canUnlock;
 
@@ -100,7 +100,7 @@ export function SkillTreeView({ branchId }: Props) {
                     opacity: isLocked ? 0.5 : 1,
                   }]}
                 >
-                  {isUnlocked && <Text style={[styles.nodeLevel, { backgroundColor: theme.colorSkill }]}>Lv.{node.level}</Text>}
+                  {isUnlocked && <Text style={[styles.nodeLevel, { backgroundColor: theme.colorSkill }]}>Lv.{node.subSkills[0]?.level ?? 0}</Text>}
                   <Text style={[styles.nodeName, { color: isUnlocked ? theme.colorSkill : theme.textSecondary }]}>
                     {node.name}
                   </Text>
@@ -116,7 +116,7 @@ export function SkillTreeView({ branchId }: Props) {
                   )}
                   {isUnlocked && (
                     <Text style={[styles.nodeExp, { color: theme.textMuted }]}>
-                      {node.currentExp}/{node.expToNext} EXP
+                      {node.subSkills[0]?.currentExp ?? 0}/{node.subSkills[0]?.expToNext ?? 100} EXP
                     </Text>
                   )}
                 </TouchableOpacity>

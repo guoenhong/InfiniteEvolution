@@ -28,7 +28,7 @@ export const achievementSlice = createSlice({
       const level = character.level;
       const unlockedSkills = skillTree.branches
         .flatMap(b => b.nodes)
-        .filter(n => n.level > 0)
+        .filter(n => n.subSkills.some(s => s.level > 0))
         .length;
       const branchCompletedCounts: Record<string, number> = {};
       for (const t of todo.items) {

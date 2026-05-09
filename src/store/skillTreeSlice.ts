@@ -14,22 +14,23 @@ export const skillTreeSlice = createSlice({
       const branch = state.branches.find(b => b.id === action.payload.branchId);
       if (!branch) return;
       const node = branch.nodes.find(n => n.id === action.payload.nodeId);
-      if (!node || node.level > 0) return; // already unlocked
+      if (!node || node.subSkills.some(s => s.level > 0)) return; // already unlocked
       // Check prerequisites
       const allPrereqsMet = node.prerequisites.every(prereqId =>
-        branch.nodes.find(n => n.id === prereqId)?.level && branch.nodes.find(n => n.id === prereqId)!.level > 0
+        branch.nodes.find(n => n.id === prereqId)?.subSkills.some(s => s.level > 0)
       );
       if (!allPrereqsMet) return;
-      node.level = 1;
+      node.subSkills[0].level = 1;
     },
     upgradeSkill(state, action: PayloadAction<{ branchId: SkillBranch; nodeId: string }>) {
       const branch = state.branches.find(b => b.id === action.payload.branchId);
       if (!branch) return;
       const node = branch.nodes.find(n => n.id === action.payload.nodeId);
-      if (!node || node.level <= 0 || node.level >= node.maxLevel) return;
-      if (node.currentExp >= node.expToNext) {
-        node.currentExp -= node.expToNext;
-        node.level += 1;
+      const mainSub = node?.subSkills[0];
+      if (!mainSub || mainSub.level <= 0 || mainSub.level >= 3) return;
+      if (mainSub.currentExp >= mainSub.expToNext) {
+        mainSub.currentExp -= mainSub.expToNext;
+        mainSub.level = (mainSub.level + 1) as 0 | 1 | 2 | 3;
       }
     },
     addBranchExp(state, action: PayloadAction<{ branchId: SkillBranch; amount: number }>) {
@@ -43,8 +44,9 @@ export const skillTreeSlice = createSlice({
       }
       // Also distribute exp to all unlocked nodes in this branch
       for (const node of branch.nodes) {
-        if (node.level > 0 && node.level < node.maxLevel) {
-          node.currentExp += Math.floor(action.payload.amount / branch.nodes.length);
+        const mainSub = node.subSkills[0];
+        if (mainSub && mainSub.level > 0 && mainSub.level < 3) {
+          mainSub.currentExp += Math.floor(action.payload.amount / branch.nodes.length);
         }
       }
     },
