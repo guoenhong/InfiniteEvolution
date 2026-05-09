@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTheme } from '../hooks/useTheme';
-import { unlockSkill } from '../store/skillTreeSlice';
+import { unlockSubSkill } from '../store/skillTreeSlice';
 import { spendSp } from '../store/characterSlice';
 import type { AppState, AppDispatch } from '../store';
 import type { SkillBranch, SkillNode } from '../types';
@@ -46,7 +46,7 @@ export function SkillTreeView({ branchId }: Props) {
         {
           text: '解锁',
           onPress: () => {
-            dispatch(unlockSkill({ branchId, nodeId: node.id }));
+            dispatch(unlockSubSkill({ branchId, nodeId: node.id, subSkillId: node.subSkills[0].id }));
             dispatch(spendSp(node.spCost));
           },
         },
@@ -54,7 +54,7 @@ export function SkillTreeView({ branchId }: Props) {
     );
   };
 
-  const expToNext = (branch.level + 1) * 200;
+  const expToNext = (branch.level + 1) * 500;
   const expPercent = Math.min(Math.floor((branch.exp / expToNext) * 100), 100);
 
   return (

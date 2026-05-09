@@ -7,7 +7,7 @@ import { TodoItem } from '../components/TodoItem';
 import { TodoAddModal } from '../components/TodoAddModal';
 import { completeTodo, failTodo, addTodo, generateDailyTodos } from '../store/todoSlice';
 import { addExp, addGold, updateStreak, damageHp } from '../store/characterSlice';
-import { addBranchExp } from '../store/skillTreeSlice';
+import { addNodeExp } from '../store/skillTreeSlice';
 import { checkAchievements } from '../store/achievementSlice';
 import { store } from '../store';
 import type { AppState, AppDispatch } from '../store';
@@ -33,7 +33,7 @@ export default function TodoScreen() {
     dispatch(addGold(todo.goldReward));
     dispatch(updateStreak());
     if (todo.branch) {
-      dispatch(addBranchExp({ branchId: todo.branch, amount: todo.expReward }));
+      dispatch(addNodeExp({ branchId: todo.branch, amount: todo.expReward }));
     }
     // Read fresh state after all dispatches to avoid stale closure
     const state = store.getState();

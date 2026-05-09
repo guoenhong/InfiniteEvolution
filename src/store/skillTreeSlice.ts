@@ -3,50 +3,84 @@ import type { SkillTreeState, SkillBranch } from '../types';
 import { ALL_BRANCHES } from '../data/skills';
 
 const initialState: SkillTreeState = {
-  branches: ALL_BRANCHES,
+  branches: ALL_BRANCHES.map(b => ({
+    ...b,
+    nodes: b.nodes.map(n => ({
+      ...n,
+      subSkills: n.subSkills.map(s => ({ ...s })),
+    })),
+  })),
 };
 
 export const skillTreeSlice = createSlice({
   name: 'skillTree',
   initialState,
   reducers: {
-    unlockSkill(state, action: PayloadAction<{ branchId: SkillBranch; nodeId: string }>) {
-      const branch = state.branches.find(b => b.id === action.payload.branchId);
+    unlockSubSkill(state, action: PayloadAction<{
+      branchId: SkillBranch; nodeId: string; subSkillId: string
+    }>) {
+      const { branchId, nodeId, subSkillId } = action.payload;
+      const branch = state.branches.find(b => b.id === branchId);
       if (!branch) return;
-      const node = branch.nodes.find(n => n.id === action.payload.nodeId);
-      if (!node || node.subSkills.some(s => s.level > 0)) return; // already unlocked
-      // Check prerequisites
-      const allPrereqsMet = node.prerequisites.every(prereqId =>
-        branch.nodes.find(n => n.id === prereqId)?.subSkills.some(s => s.level > 0)
-      );
-      if (!allPrereqsMet) return;
-      node.subSkills[0].level = 1;
+      const node = branch.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      const sub = node.subSkills.find(s => s.id === subSkillId);
+      if (!sub || sub.level > 0) return;
+      sub.level = 1;
     },
-    upgradeSkill(state, action: PayloadAction<{ branchId: SkillBranch; nodeId: string }>) {
-      const branch = state.branches.find(b => b.id === action.payload.branchId);
+    upgradeSubSkill(state, action: PayloadAction<{
+      branchId: SkillBranch; nodeId: string; subSkillId: string
+    }>) {
+      const { branchId, nodeId, subSkillId } = action.payload;
+      const branch = state.branches.find(b => b.id === branchId);
       if (!branch) return;
-      const node = branch.nodes.find(n => n.id === action.payload.nodeId);
-      const mainSub = node?.subSkills[0];
-      if (!mainSub || mainSub.level <= 0 || mainSub.level >= 3) return;
-      if (mainSub.currentExp >= mainSub.expToNext) {
-        mainSub.currentExp -= mainSub.expToNext;
-        mainSub.level = (mainSub.level + 1) as 0 | 1 | 2 | 3;
+      const node = branch.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      const sub = node.subSkills.find(s => s.id === subSkillId);
+      if (!sub || sub.level >= 3) return;
+      if (sub.currentExp >= sub.expToNext) {
+        sub.currentExp -= sub.expToNext;
+        sub.level = (sub.level + 1) as 1 | 2 | 3;
       }
     },
-    addBranchExp(state, action: PayloadAction<{ branchId: SkillBranch; amount: number }>) {
-      const branch = state.branches.find(b => b.id === action.payload.branchId);
+    addSubSkillExp(state, action: PayloadAction<{
+      branchId: SkillBranch; nodeId: string; subSkillId: string; amount: number
+    }>) {
+      const { branchId, nodeId, subSkillId, amount } = action.payload;
+      const branch = state.branches.find(b => b.id === branchId);
       if (!branch) return;
-      branch.exp += action.payload.amount;
+      const node = branch.nodes.find(n => n.id === nodeId);
+      if (!node) return;
+      const sub = node.subSkills.find(s => s.id === subSkillId);
+      if (!sub || sub.level === 0 || sub.level >= 3) return;
+      sub.currentExp += amount;
+      while (sub.currentExp >= sub.expToNext && sub.level < 3) {
+        sub.currentExp -= sub.expToNext;
+        sub.level = (sub.level + 1) as 1 | 2 | 3;
+      }
+    },
+    addNodeExp(state, action: PayloadAction<{
+      branchId: SkillBranch; amount: number
+    }>) {
+      const { branchId, amount } = action.payload;
+      const branch = state.branches.find(b => b.id === branchId);
+      if (!branch) return;
+      branch.exp += amount;
       // Auto level-up branch (recalculate threshold each iteration)
-      while (branch.exp >= (branch.level + 1) * 200) {
-        branch.exp -= (branch.level + 1) * 200;
+      while (branch.exp >= (branch.level + 1) * 500) {
+        branch.exp -= (branch.level + 1) * 500;
         branch.level += 1;
       }
-      // Also distribute exp to all unlocked nodes in this branch
+      // Distribute EXP to unlocked sub-skills
       for (const node of branch.nodes) {
-        const mainSub = node.subSkills[0];
-        if (mainSub && mainSub.level > 0 && mainSub.level < 3) {
-          mainSub.currentExp += Math.floor(action.payload.amount / branch.nodes.length);
+        for (const sub of node.subSkills) {
+          if (sub.level > 0 && sub.level < 3) {
+            sub.currentExp += Math.floor(amount / branch.nodes.length / 4);
+            while (sub.currentExp >= sub.expToNext && sub.level < 3) {
+              sub.currentExp -= sub.expToNext;
+              sub.level = (sub.level + 1) as 1 | 2 | 3;
+            }
+          }
         }
       }
     },
@@ -56,5 +90,5 @@ export const skillTreeSlice = createSlice({
   },
 });
 
-export const { unlockSkill, upgradeSkill, addBranchExp, loadSkillTree } = skillTreeSlice.actions;
+export const { unlockSubSkill, upgradeSubSkill, addSubSkillExp, addNodeExp, loadSkillTree } = skillTreeSlice.actions;
 export default skillTreeSlice.reducer;
