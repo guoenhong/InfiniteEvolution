@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { SkillTreeState, SkillBranch } from '../types';
-import { SKILL_BRANCHES, STUB_BRANCHES } from '../data/skills';
+import { ALL_BRANCHES } from '../data/skills';
 
 const initialState: SkillTreeState = {
-  branches: [...SKILL_BRANCHES, ...STUB_BRANCHES],
+  branches: ALL_BRANCHES,
 };
 
 export const skillTreeSlice = createSlice({
