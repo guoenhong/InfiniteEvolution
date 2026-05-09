@@ -6,9 +6,10 @@ import { useTheme } from '../hooks/useTheme';
 import { TodoItem } from '../components/TodoItem';
 import { TodoAddModal } from '../components/TodoAddModal';
 import { completeTodo, failTodo, addTodo, generateDailyTodos } from '../store/todoSlice';
-import { addExp, addGold, updateStreak, damageHp } from '../store/characterSlice';
+import { addExp, addGold, updateStreak, damageHp, healHp } from '../store/characterSlice';
 import { addNodeExp } from '../store/skillTreeSlice';
 import { checkAchievements } from '../store/achievementSlice';
+import { computePassives } from '../utils/passiveEngine';
 import { store } from '../store';
 import type { AppState, AppDispatch } from '../store';
 import type { TodoDifficulty, SkillBranch } from '../types';
@@ -28,27 +29,50 @@ export default function TodoScreen() {
   const handleComplete = (id: string) => {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
-    dispatch(completeTodo(id));
-    dispatch(addExp(todo.expReward));
-    dispatch(addGold(todo.goldReward));
-    dispatch(updateStreak());
-    if (todo.branch) {
-      dispatch(addNodeExp({ branchId: todo.branch, amount: todo.expReward }));
-    }
-    // Read fresh state after all dispatches to avoid stale closure
+
+    // Compute passive modifiers from all unlocked skills
     const state = store.getState();
+    const passives = computePassives(state.skillTree.branches);
+
+    // Apply multipliers to rewards
+    const branchExpMult = todo.branch ? (passives.expMultiplier[todo.branch] || 1.0) : 1.0;
+    const branchGoldMult = todo.branch ? (passives.goldMultiplier[todo.branch] || 1.0) : 1.0;
+    const finalExp = Math.floor(todo.expReward * branchExpMult * passives.globalExpMultiplier);
+    const finalGold = Math.floor(todo.goldReward * branchGoldMult * passives.globalGoldMultiplier);
+
+    dispatch(completeTodo(id));
+    dispatch(addExp(finalExp));
+    dispatch(addGold(finalGold));
+    dispatch(updateStreak());
+
+    // Apply HP regen from passive effects
+    if (passives.hpRegen > 0) {
+      dispatch(healHp(passives.hpRegen));
+    }
+
+    // Add EXP to branch sub-skills
+    if (todo.branch) {
+      const bonusExp = Math.floor(todo.expReward * (branchExpMult - 1.0));
+      dispatch(addNodeExp({ branchId: todo.branch, amount: todo.expReward + bonusExp }));
+    }
+
+    // Check achievements with fresh state
+    const freshState = store.getState();
     dispatch(checkAchievements({
-      character: state.character,
-      todo: state.todo,
-      skillTree: state.skillTree,
+      character: freshState.character,
+      todo: freshState.todo,
+      skillTree: freshState.skillTree,
     }));
   };
 
   const handleFail = (id: string) => {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
+    const state = store.getState();
+    const passives = computePassives(state.skillTree.branches);
+    const reducedPenalty = Math.max(0, todo.hpPenalty - passives.hpPenaltyReduce);
     dispatch(failTodo(id));
-    dispatch(damageHp(todo.hpPenalty));
+    dispatch(damageHp(reducedPenalty));
   };
 
   const handleAdd = (data: { title: string; difficulty: TodoDifficulty; branch?: SkillBranch }) => {
