@@ -33,19 +33,56 @@ export interface CharacterState {
 }
 
 // === Skill Tree Types ===
-export interface SkillNode {
+export type PassiveEffectType =
+  | 'exp_multiplier' | 'gold_multiplier' | 'hp_regen'
+  | 'max_hp_bonus' | 'hp_penalty_reduce' | 'sp_discount'
+  | 'extra_daily_task' | 'streak_protect' | 'bonus_difficulty_exp';
+
+export interface PassiveEffect {
+  type: PassiveEffectType;
+  value: number;
+  perLevel?: number;
+  scope?: 'branch' | 'global' | 'difficulty';
+  branch?: SkillBranch;
+}
+
+export interface SubSkill {
   id: string;
   name: string;
   description: string;
-  branch: SkillBranch;
-  tier: number;
-  level: number;
-  maxLevel: number;
+  commands: string[];
+  lore: string;
+  titles: string[];
+  level: 0 | 1 | 2 | 3;
+  passiveEffects: PassiveEffect[];
   expToNext: number;
   currentExp: number;
-  prerequisites: string[];
-  spCost: number;
+}
+
+export interface PassiveModifiers {
+  expMultiplier: Record<string, number>;
+  goldMultiplier: Record<string, number>;
+  globalExpMultiplier: number;
+  globalGoldMultiplier: number;
+  hpRegen: number;
+  maxHpBonus: number;
+  hpPenaltyReduce: number;
+  extraDailyTasks: number;
+  streakProtect: number;
+  spDiscount: number;
+}
+
+export interface SkillNode {
+  id: string;
+  name: string;
   icon: string;
+  branch: SkillBranch;
+  tier: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  spCost: number;
+  prerequisites: string[];
+  subSkills: SubSkill[];
+  ultimate: boolean;
+  titles: string[];
 }
 
 export interface SkillBranchData {
